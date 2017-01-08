@@ -13,3 +13,6 @@ django-webpack-loader
 requests
 PyYAML
 djangorestframework-jwt==1.9.0
+channels
+asgi-redis
+beautifulsoup4
