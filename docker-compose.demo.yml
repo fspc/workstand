@@ -2,8 +2,8 @@
 # JrCs/docker-letsencrypt-nginx-proxy-companion but can easily be
 # modified to be served by an alternative http server.
 
-# docker-compose  build
-# docker-compose up -d
+# docker-compose -f docker-compose.demo.yml build
+# docker-compose -f docker-compose.demo.yml up -d
 
 # bikeshop/settings/production.py will need ALLOWED_HOSTS altered correctly
 
