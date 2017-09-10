@@ -1,0 +1,10 @@
+####################
+# workstand-nginx  #
+####################
+
+FROM nginx:1.11-alpine
+
+MAINTAINER Jonathan Rosenbaum <gnuser@gmail.com>
+
+COPY default.conf /etc/nginx/conf.d
+RUN mkdir /usr/share/nginx/html/static 

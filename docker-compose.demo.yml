@@ -1,0 +1,88 @@
+# The environment is setup to use jwilder/nginx-proxy and
+# JrCs/docker-letsencrypt-nginx-proxy-companion but can easily be
+# modified to be served by an alternative http server.
+
+# docker-compose  build
+# docker-compose up -d
+
+# bikeshop/settings/production.py will need ALLOWED_HOSTS altered correctly
+
+version: "2"
+services:
+
+  nginx:
+    container_name: workstand-nginx
+    image: workstand-nginx 
+    build:
+      context: .
+      dockerfile: Dockerfile-nginx
+    volumes:
+      - static:/usr/share/nginx/html/static
+    links:
+      - workstand 
+    network_mode: "bridge"
+    environment:
+      - VIRTUAL_HOST=workstand.bikelover.org
+      - LETSENCRYPT_HOST=workstand.bikelover.org
+      - LETSENCRYPT_EMAIL=bike@bikelover.org
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  workstand:
+    container_name: workstand
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: 'bash -c "PYTHONUNBUFFERED=TRUE python manage.py migrate --no-input && python manage.py collectstatic --no-input && python manage.py rebuild_index --noinput && python manage.py loaddata fixtures.yaml && gunicorn --log-file=- -b 0.0.0.0:8000 bikeshop.wsgi:application"'
+    network_mode: "bridge"
+    image: bcbc/workstand:production
+    links:
+      - redis
+      - db
+    environment:
+      - DJANGO_SETTINGS_MODULE=bikeshop.settings.production
+      - PORT=8000
+    volumes:
+      - static:/code/static
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  redis:
+    container_name: workstand-redis
+    network_mode: "bridge"
+    image: redis:latest
+    volumes:
+      - redis:/data
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  db:
+    container_name: workstand-db
+    network_mode: "bridge"
+    image: postgres:latest
+    volumes:
+      - pgdata:/var/lib/postgresql/data/
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  pgdata:
+    external: false
+  redis:
+  static:
